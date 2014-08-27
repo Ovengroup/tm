@@ -1,0 +1,110 @@
+{% extends "::frontend.html.twig" %}
+
+
+{% block content %}
+<div class="modernizator_area">
+    {% if app.user.hasUprawnienie('1') %}
+    <a href="{{ url('projects_new') }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Nowy projekt" class="modernizator_field"><span class="glyphicon glyphicon-plus-sign"></span></div>
+    </a>
+    {% endif %}
+    <a href="{{ url('projects_zakonczone') }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Zakończone" class="modernizator_field"><span class="glyphicon glyphicon-folder-close"></span></div>
+    </a>
+         </a>
+        <a href="{{ url('projects_skasowane') }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Kosz" class="modernizator_field"><span class="glyphicon glyphicon-trash"></span></div>
+    </a>
+</div>
+{% include 'AppHelperBundle:basic:flash.html.twig' %}
+<div class="cloud">
+    <div class="cloud_tt">
+        <h3>Moje projekty</h3>
+    </div>
+    <div class="cloud_ct">
+        <div class="cloud_elem_th">
+            <div class="row well-sm">
+                <div class="col-md-3">Nazwa projektu</div>
+                <div class="col-md-2">Rola</div>
+                <div class="col-md-3">Status projektu</div>
+                <div class="col-md-2">Termin</div>
+                <div class="col-md-2">Akcja</div>
+            </div>
+        </div>
+        {% for project in myProjects %}
+        <div class="cloud_elem">
+            <div class="row well-sm">
+                <div class="col-md-3">
+                   {{ project.label }}
+                </div>
+                <div class="col-md-2">
+                {{ UzytkownikProjekt.getRolaLabelByKey(project.rola_uzytkownika) }}
+                </div>
+                <div class="col-md-3">
+                {{ Projekt.getStatusLabelByKey(project.status_projektu) }}
+                </div>
+                <div class="col-md-2">
+                {{ project.termin|date('d-m-Y') }}
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url('tasks', { projekt_nazwa: project.name }) }}">
+                        <div data-toggle="tooltip" data-placement="top" title="Przejdź do projektu" class="glyphicon glyphicon-log-in"></div>
+                    </a>
+                    {% if UzytkownikProjekt.getRolaLabelByKey(project.rola_uzytkownika) == 'Lider' %}
+                    <a href="{{ url('projects_edit_roles', { projekt_nazwa: project.name }) }}">
+                        <div data-toggle="tooltip" data-placement="top" title="Zmień role w projekcie" class="glyphicon glyphicon-cog"></div>
+                    </a>
+                    <a href="{{ url('projects_edit', { projekt_nazwa: project.name }) }}">
+                        <div data-toggle="tooltip" data-placement="top" title="Edytuj projekt" class="glyphicon glyphicon-pencil"></div>
+                    </a>
+                    <a href="{{ url('projects_delete', { projekt_nazwa: project.name }) }}">
+                        <div data-toggle="tooltip" data-placement="top" title="Usuń projekt" class="glyphicon glyphicon-trash"></div>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="cloud">
+    <div class="cloud_tt">
+        <h3>Pozostałe projekty</h3>
+    </div>
+        <div class="cloud_ct">
+        <div class="cloud_elem_th">
+            <div class="row well-sm">
+                <div class="col-md-3">Nazwa projektu</div>
+                <div class="col-md-2">Rola</div>
+                <div class="col-md-3">Status projektu</div>
+                <div class="col-md-2">Termin</div>
+                <div class="col-md-2">Akcja</div>
+            </div>
+        </div>
+        {% for project in restProjects %}
+        <div class="cloud_elem">
+            <div class="row well-sm">
+                <div class="col-md-3">
+                   {{ project.label }}
+                </div>
+                <div class="col-md-2">
+                    <p> brak <brak>
+                </div>
+                <div class="col-md-3">
+                {{ Projekt.getStatusLabelByKey(project.status) }}
+                </div>
+                <div class="col-md-2">
+                {{ project.termin|date('d-m-Y') }}
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url('tasks', { projekt_nazwa: project.name }) }}">
+                        <div data-toggle="tooltip" data-placement="top" title="Przejdź do projektu" class="glyphicon glyphicon-log-in"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{{ include('AppHelperBundle:bootstrap:return_link.html.twig', {link: 'homepage'}) }}
+{% endblock content %}

@@ -1,0 +1,79 @@
+{% extends "::frontend.html.twig" %}
+{% block templatestyle %}
+    {% include 'AppHelperBundle:basic:ajax.html.twig' %}
+{% endblock %}
+{% block content %}
+{% include 'AppHelperBundle:basic:flash.html.twig' %}
+
+<div class="cloud">
+    <div class="cloud_tt">
+        <h2>Role użytkowników <small>Edycja</small></h2>
+    </div>
+    <form action="" method="POST">
+        <div class="cloud_ct">
+            <div class="cloud_elem_th">
+                <div class="row well-sm">
+                    <div class="col-md-3">
+                        Nazwa użytkownika
+                    </div>
+                {% for rola, key in role %}
+                    <div class="col-md-2">
+                    {{ key }}
+                    </div>
+                {% endfor%}
+                    <div class="col-md-1">
+                        Akcja
+                    </div>
+                </div>
+            </div>
+        {% for uzytkownik in uzytkownicy %}
+            <div class="cloud_elem">
+                <div class="row well-sm">
+                    <div class="col-md-3">
+                {{ uzytkownik.login }}
+                    </div>
+            {% for rola, key in role %}
+                    <div class="col-md-2">
+                        <input {% if uzytkownik.getRoleProjektuByProjektId(projekt.id) == rola %}checked{% endif %} value="{{ rola }}" class="form-control-static" name="{{ uzytkownik.id }}" type="radio"  />
+                    </div>
+            {% endfor%}
+                    <div class="col-md-1">
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+            <div class="well-sm">
+                <input class="btn btn-success" type="submit" value="Zapisz role" />
+            </div>
+        </div>
+    </form>
+    <div class="well-sm">
+        <button id="add-uzytkownik-to-project" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Aktualizuj użytkowników</button>
+    </div>
+    <div class="modal fade bs-example-modal-lg" aria-hidden="true" aria-labelledby="myLargeModalLabel" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="close" aria-hidden="true" data-dismiss="modal" type="button">×</button>
+                    <h4 id="myLargeModalLabel" class="modal-title">Aktualizacja użytkowników</h4>
+                </div>
+                <div id="modal-body-add-user" class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clear"></div>
+{{ include('AppHelperBundle:bootstrap:return_link.html.twig', {link: 'projects'}) }}
+<script type="text/javascript">
+    $().ready(function(){
+       $('#add-uzytkownik-to-project').click(function(){
+           ajaxChangeContent({
+               id: '#modal-body-add-user',
+               url: '{{ url('projects_user_add', {projekt_name: projekt.name}) }}'
+           });
+       });
+    });
+</script>
+
+{% endblock content %}

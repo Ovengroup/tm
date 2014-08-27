@@ -1,0 +1,239 @@
+{% extends "::frontend.html.twig" %}
+{% block templatestyle %}
+        {% include 'AppHelperBundle:ui:load.html.twig' %}
+        {% include 'AppHelperBundle:basic:ajax.html.twig' %}
+{% endblock %}
+{% block content %}
+
+{% if app.user.isGranted('ROLE_ADMIN') %}
+<div class="modernizator_area">
+    <a href="{{ url('task_new', {projekt_nazwa: projekt.name}) }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Nowe zadanie" class="modernizator_field"><span class="glyphicon glyphicon-plus-sign"></span></div>
+    </a>
+    {% if not archiwalne %}
+    {% if task %}
+    <a href="{{ url('tasks', {projekt_nazwa: projekt.name, task_id: task.id}) }}?archiwalne=1">
+        <div data-toggle="tooltip" data-placement="bottom" title="Pokaż archiwalne zadania" class="modernizator_field"><span class="glyphicon glyphicon glyphicon-eye-open"></span></div>
+    </a>
+    {% else %}
+    <a href="{{ url('tasks', {projekt_nazwa: projekt.name}) }}?archiwalne=1">
+        <div data-toggle="tooltip" data-placement="bottom" title="Pokaż archiwalne zadania" class="modernizator_field"><span class="glyphicon glyphicon glyphicon-eye-open"></span></div>
+    </a>
+    {% endif%}
+    {% else %}
+    {% if task %}
+    <a href="{{ url('tasks', {projekt_nazwa: projekt.name, task_id: task.id}) }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Schowaj archiwalne zadania" class="modernizator_field"><span class="glyphicon glyphicon glyphicon-eye-close"></span></div>
+    </a>
+    {% else %}
+    <a href="{{ url('tasks', {projekt_nazwa: projekt.name}) }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Schowaj archiwalne zadania" class="modernizator_field"><span class="glyphicon glyphicon glyphicon-eye-close"></span></div>
+    </a>
+    {% endif%}
+    {% endif %}
+
+</div>
+{% endif%}
+{% include 'AppHelperBundle:basic:flash.html.twig' %}
+
+<div class="cloud-lt task_list">
+    <div class="cloud_tt">
+        <h4>Zadania</h4>
+    </div>
+    <div class="cloud_ct">
+        {% for task in archiwalne ? projekt.tasks : projekt.getActiveTasks() %}
+        <a class="cloud_list" href="{{ url('tasks', {projekt_nazwa: projekt.name, task_id: task.id, archiwalne: archiwalne ? true : null}) }}">
+            <div class="cloud_elem padding-low">
+                <div class="left lt">
+                    <div data-toggle="tooltip" data-placement="top" title="Status {{ task.getStatusLabel() }}" class="left"><span class="glyphicon glyphicon-tag {{ task.getStatusClass() }}"></span></div> 
+                    <div data-toggle="tooltip" data-placement="top" title="Priorytet {{ task.getPriorytetLabel() }}" class="left"><span class="glyphicon glyphicon-bookmark {{ task.getPriorytetClass() }}"></span></div> 
+                    {{ task.label }}
+                </div>
+                <div class="right">
+                {{ task.termin|date('d-m-Y') }}
+                </div>
+                <div class="clear"></div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% if task %}
+<div class="cloud-rt">
+    <div class="cloud_tt">
+        <h4>
+            Zadanie stworzył: {{ creator.login }} dnia {{ task.createdAt|date('d-m-Y') }}<br />
+            <small>{{ task.label }}</small>
+                        <a style="float: right" href="{{ url('task_edit', {projekt_nazwa: projekt.name,task_id: task.id}) }}">
+        <div data-toggle="tooltip" data-placement="bottom" title="Edytuj zadanie" class="modernizator_field">
+            <span class="glyphicon glyphicon-pencil"></span></div>
+    </a>
+        </h4>
+        
+
+    </div>
+    <div class="cloud_ct padding-medium">
+        {{ task.opis|raw  }}
+        <div class="cloud_files">
+        {% for plikTask in task.plikiTask %}
+            <a target="_blank" href="{{ url('plikTaskPobierz',{plikTaskId: plikTask.id}) }}" class="download_plik_wiadomosc" data-id="{{ plikTask.id }}">
+                <div data-toggle="tooltip" data-placement="left" title="{{plikTask.getLabel()}}" class="cloud_files_element">
+                    <div class="cloud_files_typ">
+                        {{plikTask.getLabelTyp()}}
+                    </div>
+                    <div>
+                        <span style="" class="glyphicon glyphicon-file"></span>
+                    </div>
+                    <div class="cloud_files_name">
+                        {{plikTask.getLabel()}}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+<div class="cloud-rt">
+    <div class="cloud_ct padding-medium">
+        <div><b><i>Zadanie aktualnie przypisane jest na {{ aktualny.login }}</i></b></div>
+    </div>
+</div>
+{% if app.user.isAssignedToTask(task) %}
+{% if not task.isZakonczony %}
+<div class="btn-new">
+    <div>
+        <a id="dodaj_wiadomosc" style="float: right" class="btn btn-default btn-block" href="javascript:void(0)">Napisz wiadomość</a>
+    </div>
+</div>
+<div id="form-new" style="display: none; position: relative" class="cloud-rt">
+    <div class="cloud_ct">
+        <div id="dodaj_wiadomosc_form">
+            <form action="" method="POST" {{ form_enctype(form) }}>
+                <div class="well-sm">
+                {{ form_widget(form.tekst) }}
+                </div>
+                <div class="well-sm">
+                    {{ include('AppHelperBundle:basic:zalacz_pliki.html.twig', {name: 'pliki'}) }}
+                </div>
+                <div class="well-sm">
+                {{ form_widget(form.aktualny) }}
+                </div>
+                <div class="well-sm">
+                {{ form_widget(form.status) }}
+                </div>
+                <div class="well-sm">
+                {{ form_widget(form._token) }}
+                {{ form_widget(form.save) }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="btn-new">
+    <div>
+        <a href="{{ url('taskReopen', { task_id: task.id }) }}" id="dodaj_wiadomosc" style="float: right" class="btn btn-danger btn-block" >Przywróć zadanie</a>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+{% for key, wiadomosc in task.wiadomosci %}
+<div class="cloud-rt">
+    <div class="cloud_tt_message">
+        <div class="left"><h5>{{ wiadomosc.uzytkownik.login }} <small>{{ wiadomosc.createdAt|date('d-m-Y') }}</small></h5></div>
+        <div class="right"><h5><small>#{{ wiadomosc.numer }}</small></h5></div>
+        {% if key == 0 and app.user.id == wiadomosc.uzytkownik.id %}
+        <a onclick="return confirm('Czy napewno chcesz usunąć wiadomość?')" href="{{ url('wiadomosc_delete', {wiadomoscId: wiadomosc.id}) }}"><div style="padding-right: 10px" class="right"><h5><span class="glyphicon glyphicon-trash"></span></h5></div></a>
+        <a class="edit_message" data-toggle="modal" data-target=".bs-example-modal-lg" data-id="{{ wiadomosc.id }}" href="javascript:void(0)"><div style="padding-right: 10px" class="right"><h5><span class="glyphicon glyphicon-pencil"></span></h5></div></a>
+        {% endif %}
+        <div class="clear"></div>
+    </div>
+    <div class="cloud_ct padding-medium">
+        {{ wiadomosc.tresc|raw }}
+        <div class="cloud_files">
+        {% for plik in wiadomosc.plikiWiadomosci %}
+            <a target="_blank" href="{{ url('plikWiadomoscPobierz',{plikWiadomosciId: plik.id}) }}" class="download_plik_wiadomosc" data-id="{{ plik.id }}">
+                <div data-toggle="tooltip" data-placement="left" title="{{plik.getLabel()}}" class="cloud_files_element">
+                    <div class="cloud_files_typ">
+                        {{plik.getLabelTyp()}}
+                    </div>
+                    <div>
+                        <span style="" class="glyphicon glyphicon-file"></span>
+                    </div>
+                    <div class="cloud_files_name">
+                        {{plik.getLabel()}}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="cloud-rt">
+    <div class="cloud_tt">
+        <h4>
+            Projekt stworzył: {{ creator.login }} dnia {{ projekt.createdAt|date('d-m-Y') }}<br />
+            <small>{{ projekt.label }}</small>
+        </h4>
+        <h5>
+            Zakończenie projektu wypada na dzień: {{ projekt.termin|date('d-m-Y') }}
+            <small>Pozostało dni: {{ projekt.getTimeToFinish() }}</small>
+        </h5>
+    </div>
+    <div class="cloud_ct padding-medium">
+        <div>Osoby przypisane do projektu:</div>
+    </div>
+</div>
+{% endif %}
+<div class="clear"></div>
+<div class="modal fade bs-example-modal-lg" aria-hidden="true" aria-labelledby="myLargeModalLabel" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" aria-hidden="true" data-dismiss="modal" type="button">×</button>
+                <h4 id="myLargeModalLabel" class="modal-title">Edycja wiadomości</h4>
+            </div>
+            <div id="modal-body-edit-message" class="modal-body"></div>
+        </div>
+    </div>
+</div>
+{{ include('AppHelperBundle:bootstrap:return_link.html.twig', {link: 'projects'}) }}
+{% if task %}
+<script type="text/javascript">
+    $('.selectpicker').selectpicker();
+    $().ready(function() {
+        $dw = $('#dodaj_wiadomosc');
+        $dwf = $('#dodaj_wiadomosc_form').parent().parent();
+        $fn = $('#form-new');
+        $dw.click(function() {
+            $dwf.html("");
+            if ($dwf.hasClass('show')) {
+                $dwf.fadeIn('medium');
+                $dwf.removeClass('show');
+                $dw.html('Napisz wiadomość');
+            } else {
+                $dwf.append('<div class="ajax-load" ></div>');
+                $.get("{{ url('ajax_get_new_form_message') }}?task_id={{ task.id }}",function(m, a){
+                    if(a == 'success') {
+                        $dwf.html(m);
+                        $dwf.find('.ajax-load').remove();
+                    }
+                });
+                $dwf.fadeOut('medium');
+                $dwf.addClass('show');
+                $dw.html('Ukryj formularz');
+            }
+        });
+
+        $em = $('.edit_message');
+        $em.click(function() {
+            $.get("{{ url('wiadomosc_edit') }}?wiadomosc_id="+$em.attr('data-id'), function(data){
+                $('#modal-body-edit-message').html(data);
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "::frontend.html.twig" %}
+
+{% block templatestyle %}
+    {% include 'AppHelperBundle:basic:ajax.html.twig' %}
+{% endblock templatestyle %}
+
+{% block content %}
+
+<div class="cloud">
+    <div class="cloud_tt"><h3>Edycja danych</h3></div>
+    <div class="cloud_ct">
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default form-validate">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                            Podstawowe dane <span style="float: right" class="glyphicon glyphicon-circle-arrow-down" ></span>
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse in relative">
+                    <div class="panel-body">
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="imie">Imie: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="imie" value="{{ app.user.imie }}" name="imie" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="nazwisko">Nazwisko: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="text" value="{{ app.user.nazwisko }}" name="nazwisko" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="login">Login: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="text" value="{{ app.user.login }}" name="login" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="email">Adres email: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="text" value="{{ app.user.email }}" name="email" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2">
+                                <button id="profile-edit-basic-btn" type="button" class="btn btn-primary btn-xs">
+                                    <span class="glyphicon glyphicon-ok"></span> Zapisz zmiany
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default form-validate">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                            Zmiana hasła <span style="float: right" class="glyphicon glyphicon-circle-arrow-down" ></span>
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseTwo" class="panel-collapse collapse relative">
+                    <div class="panel-body">
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="imie">Podaj stare hasło: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="password" value="" name="s_pass" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="imie">Podaj nowe hasło: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="password" value="" name="n_pass" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2 well-sm"><label for="imie">Powtórz nowe hasło: </label></div>
+                            <div class="col-md-4"><input class="form-control" type="password" value="" name="r_pass" /></div>
+                        </div>
+                        <div class="row well-sm">
+                            <div class="col-md-2">
+                                <button id="profile-edit-password-btn" type="button" class="btn btn-primary btn-xs">
+                                    <span class="glyphicon glyphicon-ok"></span> Zmień hasło
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                            Zaawansowane <span style="float: right" class="glyphicon glyphicon-circle-arrow-down" ></span>
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseThree" class="panel-collapse collapse">
+                    <div class="panel-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $().ready(function() {
+        $('#profile-edit-basic-btn').click(function() {
+            idLoad = '#collapseOne';
+            arr = new Array();
+            arr[0] = 'imie=' + $(idLoad).find("input[name='imie']").val();
+            arr[1] = 'nazwisko=' + $(idLoad).find("input[name='nazwisko']").val();
+            arr[2] = 'login=' + $(idLoad).find("input[name='login']").val();
+            arr[3] = 'email=' + $(idLoad).find("input[name='email']").val();
+
+            $fe = new FormValidator(idLoad);
+            $fe.clean();
+            $fe.validateText({
+                'name': 'imie',
+                'value': $(idLoad).find("input[name='imie']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            $fe.validateText({
+                'name': 'nazwisko',
+                'value': $(idLoad).find("input[name='nazwisko']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            $fe.validateText({
+                'name': 'login',
+                'value': $(idLoad).find("input[name='login']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            $fe.validateText({
+                'name': 'email',
+                'value': $(idLoad).find("input[name='email']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+
+            if ($fe.isValid()) {
+                dataString = arr.join('&');
+                ajaxChangeContent({
+                    append: false,
+                    data: dataString,
+                    url: '{{ url('profile_edit_change_basic') }}',
+                    id: '#profile-edit-basic-btn',
+                    idLoad: idLoad,
+                    msg: 'Dane zostały zaktualizowane'
+                });
+            } else {
+                $fe.showErrors();
+            }
+        });
+
+        $('#profile-edit-password-btn').click(function() {
+            idLoad = '#collapseTwo';
+            arr = new Array();
+            arr[0] = 's_pass=' + $(idLoad).find("input[name='s_pass']").val();
+            arr[1] = 'n_pass=' + $(idLoad).find("input[name='n_pass']").val();
+            $fe = new FormValidator(idLoad);
+            $fe.clean();
+            $fe.validateText({
+                'name': 's_pass',
+                'value': $(idLoad).find("input[name='s_pass']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            $fe.validateText({
+                'name': 'n_pass',
+                'value': $(idLoad).find("input[name='n_pass']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            $fe.validateText({
+                'name': 'r_pass',
+                'value': $(idLoad).find("input[name='r_pass']").val(),
+                'required': true,
+                'max_lenght': '255'
+            });
+            if ($(idLoad).find("input[name='r_pass']").val() != $(idLoad).find("input[name='n_pass']").val()) {
+                $fe.addError('r_pass', 'Hasła nie są identyczne');
+            }
+            if ($fe.isValid()) {
+                dataString = arr.join('&');
+                $(idLoad).append('<div class="ajax-load" ></div>');
+                $.ajax({
+                    url: "{{ url('profile_edit_change_password') }}",
+                    type: "POST",
+                    data: dataString,
+                    success: function(m) {
+                        $(idLoad).find('.ajax-load').remove();
+                        if(m != false) {
+                            arrError = m.split(";");
+                            $fe.addError(arrError[0], arrError[1]);
+                            $fe.showErrors();
+                        } else {
+                            showFlash({
+                                id: '#collapseTwo .panel-body .row:first',
+                                message: 'Hasło zostało zmienione',
+                                type: 'success'
+                            });
+                        }
+                    }
+                });
+            } else {
+                $fe.showErrors();
+            }
+        });
+    });
+</script>
+
+{% endblock %}
